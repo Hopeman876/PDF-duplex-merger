@@ -4,7 +4,7 @@ services:
   pdf-merger-user1:
     restart: always
     container_name: pdf-merger-user1
-    image: pdf-duplex-merger
+    image: ghcr.io/hopeman876/pdf-duplex-merger:latest
     volumes:
       - "/volume1/Scanner/user1/Doppelseitig:/input"
       - "/volume1/Scanner/user/OCR_machen:/output"
@@ -17,7 +17,7 @@ services:
   pdf-merger-user2: 
     restart: always
     container_name: pdf-merger-user2
-    image: pdf-duplex-merger
+    image: ghcr.io/hopeman876/pdf-duplex-merger:latest
     volumes:
       - "/volume1/Scanner/user2/Doppelseitig:/input"
       - "/volume1/Scanner/user2/OCR_machen:/output"
