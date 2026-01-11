@@ -1,0 +1,28 @@
+version: '3.4'
+
+services:
+  pdf-merger-user1:
+    restart: always
+    container_name: pdf-merger-user1
+    image: pdf-duplex-merger
+    volumes:
+      - "/volume1/Scanner/user1/Doppelseitig:/input"
+      - "/volume1/Scanner/user/OCR_machen:/output"
+    environment:
+      - SOURCE_DIRECTORY=/input
+      - DESTINATION_DIRECTORY=/output
+      - DELETE_OLD_FILES=True
+      - CHECK_INTERVAL=10
+
+  pdf-merger-user2: 
+    restart: always
+    container_name: pdf-merger-user2
+    image: pdf-duplex-merger
+    volumes:
+      - "/volume1/Scanner/user2/Doppelseitig:/input"
+      - "/volume1/Scanner/user2/OCR_machen:/output"
+    environment:
+      - SOURCE_DIRECTORY=/input
+      - DESTINATION_DIRECTORY=/output
+      - DELETE_OLD_FILES=True
+      - CHECK_INTERVAL=10
