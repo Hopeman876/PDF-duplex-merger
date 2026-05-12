@@ -9,11 +9,12 @@ SOURCE_DIR = os.getenv('SOURCE_DIRECTORY', '/input')
 OUTPUT_DIR = os.getenv('DESTINATION_DIRECTORY', '/output')
 DELETE_ORIGINALS = os.getenv('DELETE_OLD_FILES', 'True').lower() == 'true'
 CHECK_INTERVAL = int(os.getenv('CHECK_INTERVAL', '10'))
+HEARTBEAT_INTERVAL = int(os.getenv('HEARTBEAT_INTERVAL', '3600'))
 
 class PDFMerger:
     def __init__(self):
         print(f"PDF Duplex Merger watching {SOURCE_DIR}, output to {OUTPUT_DIR}")
-        print(f"Delete originals: {DELETE_ORIGINALS}, Check interval: {CHECK_INTERVAL}s")
+        print(f"Delete originals: {DELETE_ORIGINALS}, Check interval: {CHECK_INTERVAL}s, Heartbeat interval: {HEARTBEAT_INTERVAL}s")
     
     def get_pdf_files(self):
         """Gibt die zwei aeltesten PDF-Dateien zurueck"""
@@ -64,14 +65,25 @@ class PDFMerger:
     
     def run(self):
         """Hauptschleife"""
+        last_heartbeat = time.time()
+
         while True:
-            pdf_files = self.get_pdf_files()
-            
-            if len(pdf_files) == 2:
-                print(f"Found 2 PDFs: {pdf_files[0].name}, {pdf_files[1].name}")
-                time.sleep(2)
-                self.merge_pdfs(pdf_files[0], pdf_files[1])
-            
+            try:
+                pdf_files = self.get_pdf_files()
+
+                if len(pdf_files) == 2:
+                    print(f"Found 2 PDFs: {pdf_files[0].name}, {pdf_files[1].name}")
+                    time.sleep(2)
+                    self.merge_pdfs(pdf_files[0], pdf_files[1])
+
+                now = time.time()
+                if now - last_heartbeat >= HEARTBEAT_INTERVAL:
+                    print(f"Heartbeat: watching {SOURCE_DIR}")
+                    last_heartbeat = now
+
+            except Exception as e:
+                print(f"Error in main loop: {e}")
+
             time.sleep(CHECK_INTERVAL)
 
 if __name__ == '__main__':
