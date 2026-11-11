@@ -5,6 +5,11 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    # Woechentlicher Rebuild (Montag 03:17 UTC), damit Sicherheitsupdates
+    # des Basis-Images auch ohne Code-Aenderung im Image landen
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -42,5 +47,7 @@ jobs:
         with:
           context: .
           push: true
+          pull: true
+          no-cache: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
