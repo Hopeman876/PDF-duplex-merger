@@ -9,11 +9,11 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY requirements.txt .
-# pip aktualisieren, Abhaengigkeiten installieren und nicht benoetigte
-# Build-Tools (setuptools, wheel) entfernen
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt \
-    && pip uninstall -y setuptools wheel
+# Abhaengigkeiten installieren und danach pip selbst entfernen: Zur Laufzeit
+# wird es nicht gebraucht, und es bringt eine eigene, veraltete
+# setuptools-Kopie mit (CVE-2025-47273)
+RUN pip install --no-cache-dir -r requirements.txt \
+    && python -m pip uninstall -y pip setuptools wheel
 
 COPY pdf_merger.py .
 
