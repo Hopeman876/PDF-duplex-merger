@@ -1,4 +1,4 @@
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 # Sicherheitsupdates des Debian-Unterbaus einspielen, die seit dem
 # letzten Release des Basis-Images erschienen sind
