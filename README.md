@@ -26,3 +26,14 @@ Dieser Docker-Container überwacht einen Ordner und führt automatisch zwei aufe
 - Konfiguration über Umgebungsvariablen
 - Mehrere Instanzen gleichzeitig möglich (z.B. für verschiedene Benutzer oder Scanner)
 - Ideal als Vorstufe für synOCR oder andere DMS-/OCR-Lösungen
+
+## Sicherheit
+
+Der Container läuft ohne root-Rechte und ist in der Beispiel-Compose-Datei zusätzlich gehärtet:
+
+- **Benutzer-ID:** Über `user: "UID:GID"` legst du fest, unter welcher ID der Container läuft (Standard im Image: `1000:1000`). Diese ID muss in den eingebundenen Ordnern lesen, schreiben und löschen dürfen. Auf einem Synology-NAS zeigt `id <benutzername>` per SSH die passenden Werte.
+- **Kein Netzwerk:** `network_mode: none` – die App braucht keine Netzwerkverbindung.
+- **Schreibschutz und keine Sonderrechte:** `read_only`, `cap_drop: ALL` und `no-new-privileges`.
+- **Ressourcenlimits:** `mem_limit`, `cpus` und `pids_limit` begrenzen den Schaden durch präparierte PDFs. Bei sehr großen Scans ggf. `mem_limit` erhöhen.
+
+Das Image wird wöchentlich automatisch neu gebaut und auf bekannte Sicherheitslücken gescannt.
