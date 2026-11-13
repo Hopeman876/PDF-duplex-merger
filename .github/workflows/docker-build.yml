@@ -5,6 +5,11 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    # Woechentlicher Rebuild (Montag 03:17 UTC), damit Sicherheitsupdates
+    # des Basis-Images auch ohne Code-Aenderung im Image landen
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -21,13 +26,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -37,10 +35,43 @@ jobs:
             type=raw,value=latest
             type=sha
 
-      - name: Build and push Docker image
+      # Image nur lokal bauen; veroeffentlicht wird es weiter unten
+      - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          load: true
+          pull: true
+          no-cache: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      # Bei Pull Requests wird nur gebaut und gescannt, aber nichts
+      # veroeffentlicht - sonst wuerde ein ungemergter PR "latest" ueberschreiben
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Docker image
+        if: github.event_name != 'pull_request'
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          echo "$TAGS" | while read -r tag; do
+            if [ -n "$tag" ]; then docker push "$tag"; fi
+          done
+
+      # Schlaegt fehl, wenn Critical-/High-Luecken vorhanden sind, fuer die es
+      # bereits einen Fix gibt. Laeuft bewusst nach dem Push: Ein frisch
+      # gebautes Image ist auch mit Restfunden besser als das alte.
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'

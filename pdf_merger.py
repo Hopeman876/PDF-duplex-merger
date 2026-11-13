@@ -3,7 +3,7 @@ import time
 import os
 from pathlib import Path
 from datetime import datetime
-from PyPDF2 import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 
 SOURCE_DIR = os.getenv('SOURCE_DIRECTORY', '/input')
 OUTPUT_DIR = os.getenv('DESTINATION_DIRECTORY', '/output')
